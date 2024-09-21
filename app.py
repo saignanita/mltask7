@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # Load the dataset
-data = pd.read_csv(r"student dropout.csv")
+data = pd.read_csv("student dropout.csv")
 
 # Convert 'Dropped_Out' to binary (assuming 'False' and 'True' as strings)
 data['Dropped_Out'] = data['Dropped_Out'].apply(lambda x: 1 if x == 'True' else 0)
@@ -55,8 +55,8 @@ model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
 # Save the trained model and features
-joblib.dump(model, r'C:\Users\Vivek\Desktop\ml_proj\random_forest_model.pkl')
-joblib.dump(feature_names, r'C:\Users\Vivek\Desktop\ml_proj\model_features.pkl')
+joblib.dump(model, r'random_forest_model.pkl')
+joblib.dump(feature_names, r'model_features.pkl')
 
 # Make predictions and evaluate the model
 y_pred = model.predict(X_test)
