@@ -5,18 +5,26 @@ import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-import os
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # Load the dataset
-data = pd.read_csv('student_dropout.csv')  # Adjust the path as needed for deployment
+data = pd.read_csv(r"student dropout.csv")
 
 # Convert 'Dropped_Out' to binary (assuming 'False' and 'True' as strings)
 data['Dropped_Out'] = data['Dropped_Out'].apply(lambda x: 1 if x == 'True' else 0)
+
+# Check the current class distribution
+print("Original class distribution:")
+print(data['Dropped_Out'].value_counts())
 
 # Simulate dropout cases to balance the dataset
 num_dropouts = int(0.2 * len(data))
 dropout_indices = np.random.choice(data.index, num_dropouts, replace=False)
 data.loc[dropout_indices, 'Dropped_Out'] = 1
+
+# Verify the new class distribution
+print("New class distribution after simulating dropouts:")
+print(data['Dropped_Out'].value_counts())
 
 # Proceed with data preprocessing
 X = data.drop(columns=['Dropped_Out'])  # Features
@@ -42,22 +50,33 @@ feature_names = X.columns.tolist()
 # Split data into training and test sets with stratification
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
-# Initialize and train the Random Forest model with balanced class weights
-model = RandomForestClassifier(random_state=42, class_weight='balanced')
+# Initialize and train the Random Forest model
+model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
 # Save the trained model and features
-joblib.dump(model, 'random_forest_model.pkl')  # Adjust the path as needed for deployment
-joblib.dump(feature_names, 'model_features.pkl')  # Adjust the path as needed for deployment
+joblib.dump(model, r'C:\Users\Vivek\Desktop\ml_proj\random_forest_model.pkl')
+joblib.dump(feature_names, r'C:\Users\Vivek\Desktop\ml_proj\model_features.pkl')
+
+# Make predictions and evaluate the model
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+print(f"Accuracy: {accuracy:.4f}")
+print("Classification Report:")
+print(classification_rep)
+print("Confusion Matrix:")
+print(conf_matrix)
 
 # Streamlit app
+# Load the model and features
 def load_model():
-    model_path = os.path.join(os.getcwd(), 'random_forest_model.pkl')  # Adjust as needed
-    return joblib.load(model_path)
+    return joblib.load(r'random_forest_model.pkl')
 
 def load_features():
-    features_path = os.path.join(os.getcwd(), 'model_features.pkl')  # Adjust as needed
-    return joblib.load(features_path)
+    return joblib.load(r'model_features.pkl')
 
 st.title("Student Dropout Prediction App")
 
@@ -129,7 +148,7 @@ input_data = pd.DataFrame({
 
 # Preprocess the input data
 for col in binary_columns:
-    input_data[col] = le.transform(input_data[col])
+    input_data[col] = le.fit_transform(input_data[col])
 
 input_data = pd.get_dummies(input_data, columns=['School', 'Mother_Job', 'Father_Job', 
                                                  'Reason_for_Choosing_School', 'Guardian'], drop_first=True)
@@ -145,8 +164,10 @@ model = load_model()
 if st.button('Predict'):
     prediction = model.predict(input_data)
     probability = model.predict_proba(input_data)[0][1]  # Probability of dropout
+    
+    # Display prediction based on the result
     if prediction[0] == 1:
         st.warning(f"The student is at risk of dropping out with a probability of {probability:.2f}.")
     else:
-        st.success(f"The student is not at risk of dropping out with a probability of {probability:.2f}.")
+        st.success(f"The student is not at risk of dropping out with a probability of {1 - probability:.2f}.")
 
