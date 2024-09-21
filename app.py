@@ -6,21 +6,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Load the dataset
-data = pd.read_csv(r"student dropout.csv")
+data = pd.read_csv('student_dropout.csv')  # Adjust the path as needed for deployment
 
-# Convert 'Dropped_Out' to binary
+# Convert 'Dropped_Out' to binary (assuming 'False' and 'True' as strings)
 data['Dropped_Out'] = data['Dropped_Out'].apply(lambda x: 1 if x == 'True' else 0)
 
-# Simulate dropout cases to balance the dataset (if needed)
+# Simulate dropout cases to balance the dataset
 num_dropouts = int(0.2 * len(data))
 dropout_indices = np.random.choice(data.index, num_dropouts, replace=False)
 data.loc[dropout_indices, 'Dropped_Out'] = 1
 
 # Proceed with data preprocessing
-X = data.drop(columns=['Dropped_Out'])
-y = data['Dropped_Out']
+X = data.drop(columns=['Dropped_Out'])  # Features
+y = data['Dropped_Out']  # Target
 
 # Label encoding for binary categorical features
 binary_columns = ['Gender', 'Address', 'Family_Size', 'Parental_Status', 
@@ -39,23 +41,23 @@ X = pd.get_dummies(X, columns=['School', 'Mother_Job', 'Father_Job',
 # Save the list of features for later use
 feature_names = X.columns.tolist()
 
-# Split data into training and test sets
+# Split data into training and test sets with stratification
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
-# Initialize and train the Random Forest model
-model = RandomForestClassifier(random_state=42)
+# Initialize and train the Random Forest model with balanced class weights
+model = RandomForestClassifier(random_state=42, class_weight='balanced')
 model.fit(X_train, y_train)
 
 # Save the trained model and features
-joblib.dump(model, r'C:\Users\Vivek\Desktop\ml_proj\random_forest_model.pkl')
-joblib.dump(feature_names, r'C:\Users\Vivek\Desktop\ml_proj\model_features.pkl')
+joblib.dump(model, 'random_forest_model.pkl')  # Adjust the path as needed for deployment
+joblib.dump(feature_names, 'model_features.pkl')  # Adjust the path as needed for deployment
 
 # Streamlit app
 def load_model():
-    return joblib.load(r'C:\Users\Vivek\Desktop\ml_proj\random_forest_model.pkl')
+    return joblib.load('random_forest_model.pkl')  # Adjust the path as needed for deployment
 
 def load_features():
-    return joblib.load(r'C:\Users\Vivek\Desktop\ml_proj\model_features.pkl')
+    return joblib.load('model_features.pkl')  # Adjust the path as needed for deployment
 
 st.title("Student Dropout Prediction App")
 
@@ -143,9 +145,7 @@ model = load_model()
 if st.button('Predict'):
     prediction = model.predict(input_data)
     probability = model.predict_proba(input_data)[0][1]  # Probability of dropout
-    
-    # Display prediction
     if prediction[0] == 1:
         st.warning(f"The student is at risk of dropping out with a probability of {probability:.2f}.")
     else:
-        st.success(f"The student is not at risk of dropping out with a probability of {1 - probability:.2f}.")
+        st.success(f"The student is not at risk of dropping out with a probability of {probability:.2f}.")
