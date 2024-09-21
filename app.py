@@ -5,9 +5,7 @@ import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
 
 # Load the dataset
 data = pd.read_csv('student_dropout.csv')  # Adjust the path as needed for deployment
@@ -54,10 +52,12 @@ joblib.dump(feature_names, 'model_features.pkl')  # Adjust the path as needed fo
 
 # Streamlit app
 def load_model():
-    return joblib.load('random_forest_model.pkl')  # Adjust the path as needed for deployment
+    model_path = os.path.join(os.getcwd(), 'random_forest_model.pkl')  # Adjust as needed
+    return joblib.load(model_path)
 
 def load_features():
-    return joblib.load('model_features.pkl')  # Adjust the path as needed for deployment
+    features_path = os.path.join(os.getcwd(), 'model_features.pkl')  # Adjust as needed
+    return joblib.load(features_path)
 
 st.title("Student Dropout Prediction App")
 
@@ -149,3 +149,4 @@ if st.button('Predict'):
         st.warning(f"The student is at risk of dropping out with a probability of {probability:.2f}.")
     else:
         st.success(f"The student is not at risk of dropping out with a probability of {probability:.2f}.")
+
