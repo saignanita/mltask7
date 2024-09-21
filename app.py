@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # Load the dataset
-data = pd.read_csv("student dropout.csv")
+data = pd.read_csv(r"student dropout.csv")
 
 # Convert 'Dropped_Out' to binary (assuming 'False' and 'True' as strings)
 data['Dropped_Out'] = data['Dropped_Out'].apply(lambda x: 1 if x == 'True' else 0)
