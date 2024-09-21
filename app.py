@@ -127,7 +127,7 @@ input_data = pd.DataFrame({
 
 # Preprocess the input data
 for col in binary_columns:
-    input_data[col] = le.fit_transform(input_data[col])
+    input_data[col] = le.transform(input_data[col])
 
 input_data = pd.get_dummies(input_data, columns=['School', 'Mother_Job', 'Father_Job', 
                                                  'Reason_for_Choosing_School', 'Guardian'], drop_first=True)
@@ -149,5 +149,3 @@ if st.button('Predict'):
         st.warning(f"The student is at risk of dropping out with a probability of {probability:.2f}.")
     else:
         st.success(f"The student is not at risk of dropping out with a probability of {1 - probability:.2f}.")
-
-
