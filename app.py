@@ -6,31 +6,21 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Load the dataset
 data = pd.read_csv(r"C:\Users\Vivek\Downloads\archive (8)\student dropout.csv")
 
-# Convert 'Dropped_Out' to binary (assuming 'False' and 'True' as strings)
+# Convert 'Dropped_Out' to binary
 data['Dropped_Out'] = data['Dropped_Out'].apply(lambda x: 1 if x == 'True' else 0)
 
-# Check the current class distribution
-print("Original class distribution:")
-print(data['Dropped_Out'].value_counts())
-
-# Simulate dropout cases to balance the dataset
+# Simulate dropout cases to balance the dataset (if needed)
 num_dropouts = int(0.2 * len(data))
 dropout_indices = np.random.choice(data.index, num_dropouts, replace=False)
 data.loc[dropout_indices, 'Dropped_Out'] = 1
 
-# Verify the new class distribution
-print("New class distribution after simulating dropouts:")
-print(data['Dropped_Out'].value_counts())
-
 # Proceed with data preprocessing
-X = data.drop(columns=['Dropped_Out'])  # Features
-y = data['Dropped_Out']                # Target
+X = data.drop(columns=['Dropped_Out'])
+y = data['Dropped_Out']
 
 # Label encoding for binary categorical features
 binary_columns = ['Gender', 'Address', 'Family_Size', 'Parental_Status', 
@@ -49,36 +39,16 @@ X = pd.get_dummies(X, columns=['School', 'Mother_Job', 'Father_Job',
 # Save the list of features for later use
 feature_names = X.columns.tolist()
 
-# Split data into training and test sets with stratification
+# Split data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
-# Initialize and train the Random Forest model with balanced class weights
-model = RandomForestClassifier(random_state=42, class_weight='balanced')
+# Initialize and train the Random Forest model
+model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
 # Save the trained model and features
 joblib.dump(model, r'C:\Users\Vivek\Desktop\ml_proj\random_forest_model.pkl')
 joblib.dump(feature_names, r'C:\Users\Vivek\Desktop\ml_proj\model_features.pkl')
-
-# Make predictions and evaluate the model
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-classification_rep = classification_report(y_test, y_pred)
-conf_matrix = confusion_matrix(y_test, y_pred)
-
-print(f"Accuracy: {accuracy:.4f}")
-print("Classification Report:")
-print(classification_rep)
-print("Confusion Matrix:")
-print(conf_matrix)
-
-# Visualize confusion matrix
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
-plt.ylabel('Actual')
-plt.xlabel('Predicted')
-plt.title('Confusion Matrix')
-plt.show()
 
 # Streamlit app
 def load_model():
@@ -173,9 +143,11 @@ model = load_model()
 if st.button('Predict'):
     prediction = model.predict(input_data)
     probability = model.predict_proba(input_data)[0][1]  # Probability of dropout
+    
+    # Display prediction
     if prediction[0] == 1:
         st.warning(f"The student is at risk of dropping out with a probability of {probability:.2f}.")
     else:
-        st.success(f"The student is not at risk of dropping out with a probability of {probability}.")
+        st.success(f"The student is not at risk of dropping out with a probability of {1 - probability:.2f}.")
 
 
